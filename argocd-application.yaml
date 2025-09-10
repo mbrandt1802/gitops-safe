@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/mbrandt1802/gitops-safe.git
     targetRevision: main  # Use main branch
-    path: /overlays/dev  # Path to your GitOps configs
+    path: overlays/dev  # Path to your GitOps configs
   
   # Destination - your app namespace
   destination:
