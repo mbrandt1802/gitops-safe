@@ -106,11 +106,9 @@ data:
                     THEN NEW.time_elapsed 
                     ELSE best_time 
                 END,
-                last_played = NEW.completed_at,
-                updated_at = CURRENT_TIMESTAMP
+                last_played = CURRENT_TIMESTAMP
             WHERE id = NEW.user_id;
         END IF;
-        
         RETURN NEW;
     END;
     $$ LANGUAGE plpgsql;
@@ -122,21 +120,16 @@ data:
         FOR EACH ROW
         EXECUTE FUNCTION update_user_stats();
 
-    -- Grant permissions to the game user
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gameuser;
-    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO gameuser;
-    GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO gameuser;
-
-    -- Insert sample users with funny usernames
-    INSERT INTO users (username, email, display_name, total_games, total_score, best_score, best_time, last_played) VALUES
-        ('memorymaster42', 'master@example.com', '🧠 Memory Master', 15, 2340, 200, 45000, CURRENT_TIMESTAMP - INTERVAL '2 hours'),
-        ('cardshark_jenny', 'jenny@example.com', '🦈 Card Shark Jenny', 12, 1890, 180, 52000, CURRENT_TIMESTAMP - INTERVAL '1 day'),
-        ('emoji_ninja', 'ninja@example.com', '🥷 Emoji Ninja', 8, 1440, 190, 48000, CURRENT_TIMESTAMP - INTERVAL '3 hours'),
-        ('laugh_machine', 'laugh@example.com', '😂 Laugh Machine', 20, 2800, 175, 55000, CURRENT_TIMESTAMP - INTERVAL '30 minutes'),
-        ('puzzle_pirate', 'pirate@example.com', '🏴‍☠️ Puzzle Pirate', 6, 780, 150, 62000, CURRENT_TIMESTAMP - INTERVAL '2 days'),
-        ('memory_mango', 'mango@example.com', '🥭 Memory Mango', 10, 1500, 165, 58000, CURRENT_TIMESTAMP - INTERVAL '5 hours'),
-        ('giggle_guru', 'guru@example.com', '🤓 Giggle Guru', 18, 2520, 185, 47000, CURRENT_TIMESTAMP - INTERVAL '1 hour'),
-        ('chuckle_champ', 'champ@example.com', '🏆 Chuckle Champ', 14, 2100, 170, 51000, CURRENT_TIMESTAMP - INTERVAL '4 hours')
+    -- Insert sample users with funny names
+    INSERT INTO users (username, email, display_name, total_games, total_score, best_score, best_time) VALUES
+    ('joker_master', 'joker@memory.com', 'The Joker Master 🃏', 15, 1250, 95, 45000),
+    ('memory_ninja', 'ninja@memory.com', 'Memory Ninja 🥷', 22, 1890, 98, 38000),
+    ('card_wizard', 'wizard@memory.com', 'Card Wizard 🧙‍♂️', 18, 1560, 92, 52000),
+    ('brain_trainer', 'brain@memory.com', 'Brain Trainer 🧠', 12, 980, 88, 61000),
+    ('speed_demon', 'speed@memory.com', 'Speed Demon ⚡', 25, 2100, 100, 28000),
+    ('focus_champion', 'focus@memory.com', 'Focus Champion 🏆', 19, 1680, 94, 42000),
+    ('pattern_seeker', 'pattern@memory.com', 'Pattern Seeker 🔍', 16, 1420, 91, 48000),
+    ('memory_legend', 'legend@memory.com', 'Memory Legend 👑', 30, 2750, 99, 32000)
     ON CONFLICT (username) DO NOTHING;
 
     -- Success message
@@ -152,88 +145,3 @@ data:
         RAISE NOTICE '🚀 Ready for some hilarious memory gaming! 🃏✨';
         RAISE NOTICE '🎮 ========================================';
     END $$;
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres
-  namespace: humor-game
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15-alpine
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: humor-game-config
-                  key: DB_NAME
-            - name: POSTGRES_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: humor-game-config
-                  key: DB_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: humor-game-secrets
-                  key: DB_PASSWORD
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
-            - name: schema-file
-              mountPath: /docker-entrypoint-initdb.d
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "250m"
-            limits:
-              memory: "512Mi"
-              cpu: "1000m"
-      volumes:
-        - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: postgres-pvc
-        - name: schema-file
-          configMap:
-            name: postgres-init
-            items:
-              - key: 01-init.sql
-                path: 01-init.sql
-                mode: 0644
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: humor-game
-spec:
-  selector:
-    app: postgres
-  ports:
-    - port: 5432
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-  namespace: humor-game
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-
