@@ -1,0 +1,24 @@
+# gitops-safe/argocd-project.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: humor-game-safe
+  namespace: argocd
+spec:
+  description: "Safe GitOps for Humor Game - Read Only"
+  sourceRepos:
+  - https://github.com/mbrandt1802/gitops-safe
+  destinations:
+  - namespace: humor-game
+    server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+  - group: ""
+    kind: ConfigMap
+  - group: ""
+    kind: PersistentVolumeClaim
+  - group: ""
+    kind: Service
+  - group: apps
+    kind: Deployment
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
