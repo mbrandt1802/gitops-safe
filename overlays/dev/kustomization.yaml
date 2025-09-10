@@ -10,11 +10,7 @@ metadata:
 
 # Reference the base configuration
 resources:
-- ../../base/backend.yaml
-- ../../base/configmap.yaml
-- ../../base/frontend.yaml
-- ../../base/postgres.yaml
-- ../../base/redis.yam
+- ../../base
 
 # Common labels for tracking
 commonLabels:
