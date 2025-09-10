@@ -4,15 +4,45 @@ kind: Application
 metadata:
   name: humor-game-monitor
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
   project: humor-game-safe
+  
+  # Source - your Git repository
   source:
-    repoURL: https://github.com/mbrandt1802/gitops-safe
-    targetRevision: main
-    path: gitops-safe/overlays/dev
+    repoURL: https://github.com/mbrandt1802/gitops-safe.git
+    targetRevision: main  # Use main branch
+    path: /overlays/dev  # Path to your GitOps configs
+  
+  # Destination - your app namespace
   destination:
     server: https://kubernetes.default.svc
     namespace: humor-game
+  
+  # Sync policy - MANUAL ONLY for safety
   syncPolicy:
-    automated: {}  # Manual sync only - SAFE!
-#    prune: false   # Don't delete anything
+    syncOptions:
+    - CreateNamespace=false  # Don't create namespaces
+    - ApplyOutOfSyncOnly=true  # Only apply what's out of sync
+    - PrunePropagationPolicy=foreground  # Safe deletion
+    - Prune=false  # Don't delete anything automatically
+  
+  # Ignore differences that don't matter
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/template/metadata/annotations/deployment.kubernetes.io~1revision
+  - group: ''
+    kind: Service
+    jsonPointers:
+    - /spec/clusterIP
+    - /spec/clusterIPs
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+    jsonPointers:
+    - /status
+  
+  # Revision history limit
+  revisionHistoryLimit: 10
