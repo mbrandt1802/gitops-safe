@@ -17,7 +17,7 @@ resources:
 - ../../base/redis.yam
 
 # Common labels for tracking
-labels:
+commonLabels:
   app.kubernetes.io/name: humor-game
   app.kubernetes.io/instance: dev
   app.kubernetes.io/part-of: gitops-demo
