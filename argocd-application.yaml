@@ -8,7 +8,7 @@ spec:
   project: humor-game-safe
   source:
     repoURL: https://github.com/mbrandt1802/gitops-safe
-    targetRevision: gitops
+    targetRevision: main
     path: gitops-safe/overlays/dev
   destination:
     server: https://kubernetes.default.svc
